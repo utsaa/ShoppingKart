@@ -1,0 +1,46 @@
+server:
+  port: 8087
+
+management.endpoints.web.exposure.include: '*'
+management.endpoint.health.show-details: always
+
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: buying-and-payment-service
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      service1:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 5
+        ringBufferSizeInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+  #        ignoreExceptions:
+  #          - com.gl.orderManagementApp.service.MyException
+  #          - io.github.resilience4j.circuitbreaker.IgnoredException
+  ratelimiter:
+    instances:
+      service1:
+        limitForPeriod: 10
+        limitRefreshPeriod: 100000
+        timeoutDuration: 1000ms
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+payment-service:
+  ribbon:
+    listOfServers: localhost:8088,localhost:8188,localhost:8288
