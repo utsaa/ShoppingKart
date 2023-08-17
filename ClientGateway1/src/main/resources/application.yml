@@ -1,0 +1,50 @@
+server:
+  port: 5431
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: search-service
+          uri: lb://SEARCH-SERVICE
+          predicates:
+            - Path=/getItem/**
+          filters:
+            - AuthenticationFilter
+        - id: add-service
+          uri: lb://ADD-SERVICE
+          predicates:
+            - Path=/ItemControl/**
+          filters:
+            - AuthenticationFilter
+
+        - id: buying-and-payment-service
+          uri: lb://BUYING-AND-PAYMENT-SERVICE
+          predicates:
+            - Path=/buyAndPay/**
+          filters:
+            - AuthenticationFilter
+
+        - id: order-tracking-service
+          uri: lb://ORDER-TRACKING-SERVICE
+          predicates:
+            - Path=/orders/**
+          filters:
+            - AuthenticationFilter
+
+        - id: identity-service
+          uri: lb://IDENTITY-SERVICE
+          predicates:
+            - Path=/auth/**
+          filters:
+            - AuthenticationFilter
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+
