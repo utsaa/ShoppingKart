@@ -1,0 +1,81 @@
+server:
+  port: 9084
+
+management.endpoints.web.exposure.include: '*'
+management.endpoint.health.show-details: always
+
+spring:
+  application:
+    name: search-service
+
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 1000
+  cache:
+    type: REDIS
+    redis:
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: search-service
+      time-to-live: 60000
+
+  datasource:
+    name: d1
+    url: jdbc:mysql://localhost:3306/amazon
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      service1:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 5
+        ringBufferSizeInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+#        ignoreExceptions:
+#          - com.utsa.orderManagementApp.service.MyException
+  ratelimiter:
+    instances:
+      service1:
+        limitForPeriod: 10
+        limitRefreshPeriod: 20000
+        timeoutDuration: 1000ms
+
+  retry:
+    instances:
+      retryService1:
+        maxRetryAttempts: 5
+        waitDuration: 10000
+  bulkhead:
+    instances:
+      bulkheadService1:
+        maxWaitDuration: 10ms
+        maxConcurrentCalls: 10
+
+  thread-pool-bulkhead:
+    instances:
+      bulkheadService1:
+        maxThreadPoolSize: 1
+        coreThreadPoolSize: 1
+        queueCapacity: 1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    #      Dont want to register it with eureka server
+#    register-with-eureka: false
